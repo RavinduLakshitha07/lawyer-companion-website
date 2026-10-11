@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lawyer Companion</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #C9A84C;
+  --gold-light: #D4B85A;
+  --gold-dark: #B8933A;
+  --gold-glow: rgba(201, 168, 76, 0.15);
+  --black: #0A0A0A;
+  --black-soft: #141414;
+  --black-card: #1A1A1A;
+  --white: #FFFFFF;
+  --white-off: #F5F5F0;
+  --gray-100: #E8E8E8;
+  --gray-200: #D0D0D0;
+  --gray-400: #888888;
+  --gray-600: #555555;
+  --gray-800: #2A2A2A;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --max-width: 1400px;
+  --section-pad: clamp(80px, 10vw, 140px);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--black);
+  color: var(--white);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--black); }
+::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
+
+/* ── Utility ── */
+.container { width: 100%; max-width: var(--max-width); margin: 0 auto; padding: 0 clamp(24px, 4vw, 64px); }
+.container-wide { width: 100%; max-width: 1600px; margin: 0 auto; padding: 0 clamp(24px, 4vw, 64px); }
+
+/* ── Reveal animation ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(60px);
+  transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1), transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-80px);
+  transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1), transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-left.visible { opacity: 1; transform: translateX(0); }
+.reveal-right {
+  opacity: 0;
+  transform: translateX(80px);
+  transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1), transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-right.visible { opacity: 1; transform: translateX(0); }
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1), transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-scale.visible { opacity: 1; transform: scale(1); }
+
+.stagger-1 { transition-delay: 0.1s; }
+.stagger-2 { transition-delay: 0.2s; }
+.stagger-3 { transition-delay: 0.3s; }
+.stagger-4 { transition-delay: 0.4s; }
+.stagger-5 { transition-delay: 0.5s; }
+
+/* ── Gold line accent ── */
+.gold-line {
+  width: 60px; height: 2px;
+  background: var(--gold);
+  margin-bottom: 20px;
+}
+.gold-line-center { margin-left: auto; margin-right: auto; }
+
+/* ── Section label ── */
+.section-label {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 600;
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+
+.section-subtitle {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: var(--gray-400);
+  max-width: 600px;
+}
+
+/* ══════════════════════════════════════
+   NAVIGATION
+   ══════════════════════════════════════ */
+.navbar {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 1000;
+  padding: 20px 0;
+  transition: background 0.4s, padding 0.4s, box-shadow 0.4s;
+}
+.navbar.scrolled {
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(20px);
+  padding: 14px 0;
+  box-shadow: 0 1px 0 rgba(201, 168, 76, 0.1);
+}
+.navbar .container {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  display: flex; align-items: center; gap: 12px;
+  text-decoration: none; color: var(--white);
+}
+.nav-logo-icon {
+  width: 38px; height: 38px;
+  border: 1.5px solid var(--gold);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-serif);
+  font-size: 1.1rem; font-weight: 700;
+  color: var(--gold);
+  transition: background 0.3s, color 0.3s;
+}
+.nav-logo:hover .nav-logo-icon {
+  background: var(--gold); color: var(--black);
+}
+.nav-logo-text {
+  font-family: var(--font-serif);
+  font-size: 1.2rem; font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.nav-links { display: flex; gap: 36px; align-items: center; list-style: none; }
+.nav-links a {
+  text-decoration: none; color: var(--gray-200);
+  font-size: 0.85rem; font-weight: 500;
+  letter-spacing: 0.5px;
+  position: relative;
+  transition: color 0.3s;
+}
+.nav-links a::after {
+  content: ''; position: absolute; bottom: -4px; left: 0;
+  width: 0; height: 1px; background: var(--gold);
+  transition: width 0.3s;
+}
+.nav-links a:hover { color: var(--gold); }
+.nav-links a:hover::after { width: 100%; }
+
+.nav-cta {
+  padding: 10px 28px;
+  background: transparent;
+  border: 1px solid var(--gold);
+  color: var(--gold) !important;
+  border-radius: 4px;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: background 0.3s, color 0.3s, box-shadow 0.3s !important;
+  cursor: pointer;
+}
+.nav-cta::after { display: none !important; }
+.nav-cta:hover {
+  background: var(--gold) !important;
+  color: var(--black) !important;
+  box-shadow: 0 0 30px rgba(201, 168, 76, 0.25);
+}
+
+/* Mobile menu */
+.nav-hamburger {
+  display: none; flex-direction: column; gap: 5px; cursor: pointer;
+  background: none; border: none; padding: 4px;
+}
+.nav-hamburger span {
+  width: 24px; height: 2px; background: var(--white);
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+@media (max-width: 900px) {
+  .nav-hamburger { display: flex; }
+  .nav-links {
+    position: fixed; top: 0; right: -100%; width: 280px; height: 100vh;
+    flex-direction: column; justify-content: center;
+    background: var(--black-soft); gap: 32px;
+    padding: 40px;
+    transition: right 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: -10px 0 40px rgba(0,0,0,0.5);
+  }
+  .nav-links.open { right: 0; }
+  .nav-links a { font-size: 1.1rem; }
+}
+
+/* ══════════════════════════════════════
+   HERO / BANNER
+   ══════════════════════════════════════ */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex; align-items: center;
+  overflow: hidden;
+  background: var(--black);
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 70% 40%, rgba(201, 168, 76, 0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 80% at 20% 80%, rgba(201, 168, 76, 0.04) 0%, transparent 50%);
+}
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(201, 168, 76, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(201, 168, 76, 0.03) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 70%);
+}
+.hero .container {
+  position: relative; z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  padding-top: 120px;
+  padding-bottom: 80px;
+}
+.hero-content { max-width: 640px; }
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 18px;
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 100px;
+  font-size: 0.75rem; font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 32px;
+  background: rgba(201, 168, 76, 0.05);
+}
+.hero-badge-dot {
+  width: 6px; height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+  animation: pulse-dot 2s ease infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.hero h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(2.8rem, 5.5vw, 4.5rem);
+  font-weight: 600;
+  line-height: 1.1;
+  margin-bottom: 28px;
+  letter-spacing: -0.5px;
+}
+.hero h1 .gold { color: var(--gold); }
+.hero h1 .thin { font-weight: 400; color: var(--gray-200); }
+
+.hero-desc {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--gray-400);
+  margin-bottom: 44px;
+  max-width: 500px;
+}
+
+.hero-buttons { display: flex; gap: 16px; flex-wrap: wrap; }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 16px 36px;
+  background: var(--gold);
+  color: var(--black);
+  border: none; border-radius: 4px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem; font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.3s, box-shadow 0.3s, transform 0.3s;
+}
+.btn-primary:hover {
+  background: var(--gold-light);
+  box-shadow: 0 8px 40px rgba(201, 168, 76, 0.3);
+  transform: translateY(-2px);
+}
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 16px 36px;
+  background: transparent;
+  color: var(--white);
+  border: 1px solid var(--gray-600);
+  border-radius: 4px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem; font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.3s, color 0.3s, transform 0.3s;
+}
+.btn-secondary:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  transform: translateY(-2px);
+}
+
+/* Hero visual */
+.hero-visual {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+.hero-phone {
+  width: 280px; height: 560px;
+  background: var(--black-card);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 36px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05);
+  animation: float 6s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-16px); }
+}
+.hero-phone-notch {
+  width: 120px; height: 28px;
+  background: var(--black);
+  border-radius: 0 0 18px 18px;
+  margin: 0 auto;
+}
+.hero-phone-content { padding: 24px 20px; }
+.phone-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px;
+}
+.phone-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-serif);
+  font-size: 0.85rem; font-weight: 700; color: var(--black);
+}
+.phone-greeting { font-size: 0.8rem; color: var(--gray-400); }
+.phone-name { font-size: 1rem; font-weight: 600; }
+
+.phone-card {
+  background: rgba(201, 168, 76, 0.06);
+  border: 1px solid rgba(201, 168, 76, 0.15);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.phone-card-label {
+  font-size: 0.65rem; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--gold);
+  margin-bottom: 6px;
+}
+.phone-card-value {
+  font-family: var(--font-serif);
+  font-size: 1.6rem; font-weight: 700;
+}
+.phone-card-sub {
+  font-size: 0.7rem; color: var(--gray-400); margin-top: 4px;
+}
+
+.phone-list-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.phone-list-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--gold); flex-shrink: 0;
+}
+.phone-list-dot.gray { background: var(--gray-600); }
+.phone-list-text { font-size: 0.78rem; color: var(--gray-200); }
+.phone-list-time { font-size: 0.68rem; color: var(--gray-600); margin-left: auto; white-space: nowrap; }
+
+/* Floating decorative elements */
+.hero-float-card {
+  position: absolute;
+  background: var(--black-card);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 16px 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  animation: float 8s ease-in-out infinite;
+}
+.hero-float-card.card-1 {
+  top: 40px; right: -30px;
+  animation-delay: -2s;
+}
+.hero-float-card.card-2 {
+  bottom: 80px; left: -40px;
+  animation-delay: -4s;
+}
+.float-card-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: rgba(201, 168, 76, 0.1);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 8px;
+  color: var(--gold); font-size: 0.9rem;
+}
+.float-card-text { font-size: 0.75rem; font-weight: 600; }
+.float-card-sub { font-size: 0.65rem; color: var(--gray-400); margin-top: 2px; }
+
+@media (max-width: 1024px) {
+  .hero .container { grid-template-columns: 1fr; gap: 60px; text-align: center; }
+  .hero-content { max-width: 100%; margin: 0 auto; }
+  .hero-desc { margin-left: auto; margin-right: auto; }
+  .hero-buttons { justify-content: center; }
+  .hero-visual { margin: 0 auto; }
+  .hero-float-card { display: none; }
+}
+
+/* ══════════════════════════════════════
+   ABOUT SECTION
+   ══════════════════════════════════════ */
+.about {
+  padding: var(--section-pad) 0;
+  background: var(--black-soft);
+  position: relative;
+}
+.about::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.2), transparent);
+}
+.about .container-wide {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(40px, 6vw, 100px);
+  align-items: center;
+}
+.about-image-wrap {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.about-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background:
+    linear-gradient(135deg, var(--black-card) 0%, var(--gray-800) 100%);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.about-image-wrap:hover .about-image { transform: scale(1.03); }
+
+.about-image-inner {
+  text-align: center; padding: 40px;
+}
+.about-image-icon {
+  width: 80px; height: 80px;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+}
+.about-image-icon svg { width: 36px; height: 36px; stroke: var(--gold); fill: none; stroke-width: 1.5; }
+.about-image-text {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  color: var(--gray-200);
+}
+.about-image-sub {
+  font-size: 0.8rem;
+  color: var(--gray-600);
+  margin-top: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.about-corner {
+  position: absolute;
+  width: 60px; height: 60px;
+  border-color: var(--gold);
+  border-style: solid;
+}
+.about-corner.tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+.about-corner.br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+.about-text .section-subtitle { margin-bottom: 32px; }
+.about-features { display: flex; flex-direction: column; gap: 20px; }
+.about-feat {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  transition: background 0.3s;
+}
+.about-feat:hover { background: rgba(201, 168, 76, 0.04); }
+.about-feat-icon {
+  width: 40px; height: 40px; flex-shrink: 0;
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gold); font-size: 1rem;
+}
+.about-feat-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; }
+.about-feat-desc { font-size: 0.85rem; color: var(--gray-400); line-height: 1.6; }
+
+@media (max-width: 900px) {
+  .about .container-wide { grid-template-columns: 1fr; }
+}
+
+/* ══════════════════════════════════════
+   STATISTICS SECTION
+   ══════════════════════════════════════ */
+.stats {
+  padding: var(--section-pad) 0;
+  background: var(--black);
+  position: relative;
+  overflow: hidden;
+}
+.stats::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(201, 168, 76, 0.04) 0%, transparent 60%);
+}
+.stats-header { text-align: center; margin-bottom: 72px; position: relative; z-index: 1; }
+.stats-header .section-subtitle { margin: 0 auto; }
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+  position: relative; z-index: 1;
+}
+.stat-card {
+  text-align: center;
+  padding: 48px 24px;
+  background: var(--black-card);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.4s, border-color 0.4s, box-shadow 0.4s;
+}
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 40px; height: 2px;
+  background: var(--gold);
+  opacity: 0;
+  transition: opacity 0.4s, width 0.4s;
+}
+.stat-card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(201, 168, 76, 0.2);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.stat-card:hover::before { opacity: 1; width: 60px; }
+
+.stat-number {
+  font-family: var(--font-serif);
+  font-size: clamp(2.4rem, 4vw, 3.4rem);
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.stat-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--gray-200);
+  margin-bottom: 4px;
+}
+.stat-desc {
+  font-size: 0.75rem;
+  color: var(--gray-600);
+}
+
+@media (max-width: 900px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .stats-grid { grid-template-columns: 1fr; } }
+
+/* ══════════════════════════════════════
+   FEATURES SECTION
+   ══════════════════════════════════════ */
+.features { padding: 0; }
+.feature-block {
+  padding: var(--section-pad) 0;
+  position: relative;
+  overflow: hidden;
+}
+.feature-block:nth-child(odd) { background: var(--black-soft); }
+.feature-block:nth-child(even) { background: var(--black); }
+
+.feature-block::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+}
+
+.feature-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(40px, 6vw, 100px);
+  align-items: center;
+}
+.feature-block:nth-child(even) .feature-inner { direction: rtl; }
+.feature-block:nth-child(even) .feature-inner > * { direction: ltr; }
+
+.feature-visual {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.feature-image {
+  width: 100%;
+  aspect-ratio: 5 / 4;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.feature-visual:hover .feature-image { transform: scale(1.05); }
+
+.feat-img-bg {
+  position: absolute; inset: 0;
+  border-radius: 12px;
+}
+.feat-bg-1 {
+  background: linear-gradient(160deg, #1a1a1a 0%, #252520 50%, #1a1a14 100%);
+}
+.feat-bg-2 {
+  background: linear-gradient(160deg, #1a1a1a 0%, #1a2020 50%, #141a1a 100%);
+}
+.feat-bg-3 {
+  background: linear-gradient(160deg, #1a1a1a 0%, #201a20 50%, #1a141a 100%);
+}
+.feat-bg-4 {
+  background: linear-gradient(160deg, #1a1a1a 0%, #20201a 50%, #1a1a14 100%);
+}
+
+.feat-illustration {
+  position: relative; z-index: 1;
+  padding: 40px;
+  text-align: center;
+}
+.feat-icon-lg {
+  width: 80px; height: 80px;
+  border: 1.5px solid var(--gold);
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 20px;
+  background: rgba(201, 168, 76, 0.05);
+  transition: background 0.4s, transform 0.4s;
+}
+.feature-visual:hover .feat-icon-lg {
+  background: rgba(201, 168, 76, 0.1);
+  transform: scale(1.08);
+}
+.feat-icon-lg svg {
+  width: 36px; height: 36px;
+  stroke: var(--gold); fill: none; stroke-width: 1.5;
+}
+.feat-img-label {
+  font-family: var(--font-serif);
+  font-size: 1.2rem; color: var(--gray-200);
+}
+.feat-img-sublabel {
+  font-size: 0.72rem; color: var(--gray-600);
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-top: 8px;
+}
+
+.feature-text { max-width: 520px; }
+.feature-number {
+  font-family: var(--font-serif);
+  font-size: 4rem;
+  font-weight: 700;
+  color: rgba(201, 168, 76, 0.08);
+  line-height: 1;
+  margin-bottom: 16px;
+}
+.feature-text .section-title { margin-bottom: 16px; }
+.feature-text .section-subtitle { margin-bottom: 28px; }
+.feature-points { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+.feature-points li {
+  display: flex; align-items: flex-start; gap: 12px;
+  font-size: 0.9rem; color: var(--gray-200); line-height: 1.6;
+}
+.feature-points li::before {
+  content: '';
+  width: 6px; height: 6px; flex-shrink: 0;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  margin-top: 7px;
+}
+
+@media (max-width: 900px) {
+  .feature-inner { grid-template-columns: 1fr; gap: 40px; }
+  .feature-block:nth-child(even) .feature-inner { direction: ltr; }
+}
+
+/* ══════════════════════════════════════
+   TESTIMONIALS
+   ══════════════════════════════════════ */
+.testimonials {
+  padding: var(--section-pad) 0;
+  background: var(--black-soft);
+  position: relative;
+  overflow: hidden;
+}
+.testimonials::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.2), transparent);
+}
+.testimonials-header { text-align: center; margin-bottom: 72px; }
+.testimonials-header .section-subtitle { margin: 0 auto; }
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+.testimonial-card {
+  background: var(--black-card);
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 12px;
+  padding: 40px 32px;
+  position: relative;
+  transition: transform 0.4s, border-color 0.4s, box-shadow 0.4s;
+}
+.testimonial-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(201, 168, 76, 0.15);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.testimonial-quote {
+  font-family: var(--font-serif);
+  font-size: 2.5rem;
+  color: var(--gold);
+  opacity: 0.3;
+  line-height: 1;
+  margin-bottom: 16px;
+}
+.testimonial-text {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--gray-200);
+  margin-bottom: 28px;
+  font-style: italic;
+}
+.testimonial-author { display: flex; align-items: center; gap: 14px; }
+.testimonial-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-serif);
+  font-weight: 700; font-size: 0.9rem; color: var(--black);
+  flex-shrink: 0;
+}
+.testimonial-name { font-weight: 600; font-size: 0.9rem; }
+.testimonial-role { font-size: 0.78rem; color: var(--gray-400); margin-top: 2px; }
+.testimonial-stars {
+  display: flex; gap: 3px; margin-bottom: 16px;
+}
+.testimonial-stars svg {
+  width: 14px; height: 14px; fill: var(--gold);
+}
+
+@media (max-width: 1024px) { .testimonials-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 640px) { .testimonials-grid { grid-template-columns: 1fr; } }
+
+/* ══════════════════════════════════════
+   CONTACT SECTION
+   ══════════════════════════════════════ */
+.contact {
+  padding: var(--section-pad) 0;
+  background: var(--black);
+  position: relative;
+}
+.contact::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.2), transparent);
+}
+.contact::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 50% 50% at 50% 100%, rgba(201, 168, 76, 0.05) 0%, transparent 60%);
+  pointer-events: none;
+}
+.contact .container { position: relative; z-index: 1; }
+.contact-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(40px, 6vw, 100px);
+  align-items: center;
+}
+.contact-text .section-subtitle { margin-bottom: 36px; }
+.contact-info { display: flex; flex-direction: column; gap: 20px; margin-bottom: 40px; }
+.contact-info-item {
+  display: flex; align-items: center; gap: 16px;
+}
+.contact-info-icon {
+  width: 44px; height: 44px;
+  border: 1px solid rgba(201, 168, 76, 0.2);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gold); flex-shrink: 0;
+  transition: background 0.3s;
+}
+.contact-info-item:hover .contact-info-icon {
+  background: rgba(201, 168, 76, 0.08);
+}
+.contact-info-label {
+  font-size: 0.72rem; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--gray-600);
+}
+.contact-info-value {
+  font-size: 0.95rem; color: var(--gray-200); margin-top: 2px;
+}
+
+.contact-cta-wrap {
+  background: var(--black-card);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 16px;
+  padding: clamp(40px, 5vw, 64px);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.contact-cta-wrap::before {
+  content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 80px; height: 2px;
+  background: var(--gold);
+}
+.contact-cta-icon {
+  width: 64px; height: 64px;
+  border: 1.5px solid var(--gold);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 24px;
+}
+.contact-cta-icon svg {
+  width: 28px; height: 28px;
+  stroke: var(--gold); fill: none; stroke-width: 1.5;
+}
+.contact-cta-title {
+  font-family: var(--font-serif);
+  font-size: 1.6rem; font-weight: 600;
+  margin-bottom: 12px;
+}
+.contact-cta-desc {
+  font-size: 0.9rem; color: var(--gray-400);
+  line-height: 1.7;
+  margin-bottom: 32px;
+  max-width: 360px;
+  margin-left: auto; margin-right: auto;
+}
+.btn-contact {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 18px 48px;
+  background: var(--gold);
+  color: var(--black);
+  border: none; border-radius: 4px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem; font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.3s, box-shadow 0.3s, transform 0.3s;
+}
+.btn-contact:hover {
+  background: var(--gold-light);
+  box-shadow: 0 8px 40px rgba(201, 168, 76, 0.35);
+  transform: translateY(-3px);
+}
+.btn-contact svg {
+  width: 18px; height: 18px; stroke: var(--black); fill: none; stroke-width: 2;
+  transition: transform 0.3s;
+}
+.btn-contact:hover svg { transform: translateX(4px); }
+
+@media (max-width: 900px) {
+  .contact-inner { grid-template-columns: 1fr; }
+}
+
+/* ══════════════════════════════════════
+   FOOTER
+   ══════════════════════════════════════ */
+.footer {
+  padding: 48px 0;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  background: var(--black);
+}
+.footer .container {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 20px;
+}
+.footer-logo {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; color: var(--white);
+}
+.footer-logo-icon {
+  width: 30px; height: 30px;
+  border: 1px solid var(--gold);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-serif);
+  font-size: 0.85rem; font-weight: 700; color: var(--gold);
+}
+.footer-logo-text {
+  font-family: var(--font-serif);
+  font-size: 1rem; font-weight: 600;
+}
+.footer-copy {
+  font-size: 0.78rem; color: var(--gray-600);
+}
+.footer-links { display: flex; gap: 28px; }
+.footer-links a {
+  text-decoration: none; color: var(--gray-400);
+  font-size: 0.8rem; transition: color 0.3s;
+}
+.footer-links a:hover { color: var(--gold); }
+
+/* ── Animated counter ── */
+.count-up { display: inline-block; }
+
+/* ── Parallax subtle ── */
+.parallax-wrap { transition: transform 0.1s linear; }
+</style>
+</head>
+<body>
+
+<!-- ════════ NAVIGATION ════════ -->
+<nav class="navbar" id="navbar">
+  <div class="container">
+    <a href="#" class="nav-logo">
+      <div class="nav-logo-icon">LC</div>
+      <span class="nav-logo-text">Lawyer Companion</span>
+    </a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#about">About</a></li>
+      <li><a href="#stats">Impact</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#testimonials">Testimonials</a></li>
+      <li><a href="#contact" class="nav-cta">Get Started</a></li>
+    </ul>
+    <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- ════════ HERO ════════ -->
+<section class="hero" id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-badge reveal stagger-1">
+        <span class="hero-badge-dot"></span>
+        Trusted by 5,000+ Legal Professionals
+      </div>
+      <h1 class="reveal stagger-2">
+        Your Legal<br>
+        Practice, <span class="gold">Elevated</span><br>
+        <span class="thin">& Simplified</span>
+      </h1>
+      <p class="hero-desc reveal stagger-3">
+        The intelligent legal companion that streamlines case management, automates document workflows, and empowers attorneys to focus on what matters most — winning cases.
+      </p>
+      <div class="hero-buttons reveal stagger-4">
+        <a href="#contact" class="btn-primary">
+          Start Free Trial
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a href="#features" class="btn-secondary">Explore Features</a>
+      </div>
+    </div>
+    <div class="hero-visual reveal-scale stagger-3">
+      <div class="hero-phone">
+        <div class="hero-phone-notch"></div>
+        <div class="hero-phone-content">
+          <div class="phone-header">
+            <div>
+              <div class="phone-greeting">Good Morning</div>
+              <div class="phone-name">Counselor</div>
+            </div>
+            <div class="phone-avatar">LC</div>
+          </div>
+          <div class="phone-card">
+            <div class="phone-card-label">Active Cases</div>
+            <div class="phone-card-value">24</div>
+            <div class="phone-card-sub">3 hearings this week</div>
+          </div>
+          <div class="phone-list-item">
+            <div class="phone-list-dot"></div>
+            <div class="phone-list-text">Smith v. Corp — Brief Due</div>
+            <div class="phone-list-time">2h</div>
+          </div>
+          <div class="phone-list-item">
+            <div class="phone-list-dot gray"></div>
+            <div class="phone-list-text">Estate of Johnson — Review</div>
+            <div class="phone-list-time">4h</div>
+          </div>
+          <div class="phone-list-item">
+            <div class="phone-list-dot"></div>
+            <div class="phone-list-text">Davis Contract — Signing</div>
+            <div class="phone-list-time">Tmrw</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-float-card card-1">
+        <div class="float-card-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </div>
+        <div class="float-card-text">Task Completed</div>
+        <div class="float-card-sub">Document reviewed</div>
+      </div>
+      <div class="hero-float-card card-2">
+        <div class="float-card-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <div class="float-card-text">12.5 hrs saved</div>
+        <div class="float-card-sub">This week</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ ABOUT ════════ -->
+<section class="about" id="about">
+  <div class="container-wide">
+    <div class="about-image-wrap reveal-left">
+      <div class="about-image">
+        <div class="about-image-inner">
+          <div class="about-image-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="about-image-text">Built for the<br>Legal Mind</div>
+          <div class="about-image-sub">Since 2024</div>
+        </div>
+      </div>
+      <div class="about-corner tl"></div>
+      <div class="about-corner br"></div>
+    </div>
+    <div class="about-text">
+      <div class="section-label reveal stagger-1">About Us</div>
+      <div class="gold-line reveal stagger-2"></div>
+      <h2 class="section-title reveal stagger-2">
+        Designed by Attorneys,<br>for <span style="color:var(--gold)">Attorneys</span>
+      </h2>
+      <p class="section-subtitle reveal stagger-3">
+        Lawyer Companion was born from the frustration of managing complex legal workflows with outdated tools. We understand the precision, confidentiality, and urgency that defines legal practice — because we've lived it.
+      </p>
+      <div class="about-features">
+        <div class="about-feat reveal stagger-3">
+          <div class="about-feat-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div>
+            <div class="about-feat-title">Bank-Level Security</div>
+            <div class="about-feat-desc">End-to-end encryption with SOC 2 compliance ensures your client data remains privileged and protected.</div>
+          </div>
+        </div>
+        <div class="about-feat reveal stagger-4">
+          <div class="about-feat-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
+          </div>
+          <div>
+            <div class="about-feat-title">Accessible Everywhere</div>
+            <div class="about-feat-desc">Seamlessly access your cases from courtroom to office — on any device, at any time.</div>
+          </div>
+        </div>
+        <div class="about-feat reveal stagger-5">
+          <div class="about-feat-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          </div>
+          <div>
+            <div class="about-feat-title">Dedicated Legal Support</div>
+            <div class="about-feat-desc">Our team of legal-tech specialists is available around the clock to ensure your practice never misses a beat.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ STATISTICS ════════ -->
+<section class="stats" id="stats">
+  <div class="container-wide">
+    <div class="stats-header">
+      <div class="section-label reveal">Our Impact</div>
+      <div class="gold-line gold-line-center reveal stagger-1"></div>
+      <h2 class="section-title reveal stagger-2">Transforming Legal Practice<br>Across the <span style="color:var(--gold)">Globe</span></h2>
+      <p class="section-subtitle reveal stagger-3">
+        Trusted by solo practitioners and top-tier law firms alike, Lawyer Companion delivers measurable results where it matters most.
+      </p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card reveal stagger-1">
+        <div class="stat-number"><span class="count-up" data-target="5000">0</span>+</div>
+        <div class="stat-label">Active Users</div>
+        <div class="stat-desc">Legal professionals worldwide</div>
+      </div>
+      <div class="stat-card reveal stagger-2">
+        <div class="stat-number"><span class="count-up" data-target="98">0</span>%</div>
+        <div class="stat-label">Client Satisfaction</div>
+        <div class="stat-desc">Based on annual survey</div>
+      </div>
+      <div class="stat-card reveal stagger-3">
+        <div class="stat-number"><span class="count-up" data-target="12">0</span>M+</div>
+        <div class="stat-label">Documents Managed</div>
+        <div class="stat-desc">Securely processed & stored</div>
+      </div>
+      <div class="stat-card reveal stagger-4">
+        <div class="stat-number"><span class="count-up" data-target="40">0</span>%</div>
+        <div class="stat-label">Time Saved</div>
+        <div class="stat-desc">Average per attorney per week</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ FEATURES ════════ -->
+<section class="features" id="features">
+
+  <!-- Feature 1 -->
+  <div class="feature-block">
+    <div class="container-wide">
+      <div class="feature-inner">
+        <div class="feature-visual reveal-left">
+          <div class="feature-image">
+            <div class="feat-img-bg feat-bg-1"></div>
+            <div class="feat-illustration">
+              <div class="feat-icon-lg">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              </div>
+              <div class="feat-img-label">Smart Case<br>Management</div>
+              <div class="feat-img-sublabel">Centralized Control</div>
+            </div>
+          </div>
+        </div>
+        <div class="feature-text reveal-right">
+          <div class="feature-number">01</div>
+          <div class="section-label">Case Management</div>
+          <h3 class="section-title">Intelligent Case<br><span style="color:var(--gold)">Organization</span></h3>
+          <p class="section-subtitle">Manage every aspect of your cases from a single, intuitive dashboard. Track deadlines, organize evidence, and monitor progress with precision.</p>
+          <ul class="feature-points">
+            <li>Automated deadline tracking with court-sync integration</li>
+            <li>Drag-and-drop case file organization</li>
+            <li>Real-time collaboration with co-counsel and staff</li>
+            <li>Custom tags and filters for instant case retrieval</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature 2 -->
+  <div class="feature-block">
+    <div class="container-wide">
+      <div class="feature-inner">
+        <div class="feature-visual reveal-right">
+          <div class="feature-image">
+            <div class="feat-img-bg feat-bg-2"></div>
+            <div class="feat-illustration">
+              <div class="feat-icon-lg">
+                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </div>
+              <div class="feat-img-label">Document<br>Automation</div>
+              <div class="feat-img-sublabel">Draft in Seconds</div>
+            </div>
+          </div>
+        </div>
+        <div class="feature-text reveal-left">
+          <div class="feature-number">02</div>
+          <div class="section-label">Document Workflow</div>
+          <h3 class="section-title">Automated Document<br><span style="color:var(--gold)">Generation</span></h3>
+          <p class="section-subtitle">Transform hours of drafting into minutes. Our AI-powered templates ensure accuracy while maintaining your firm's voice and standards.</p>
+          <ul class="feature-points">
+            <li>200+ pre-built legal document templates</li>
+            <li>AI-assisted clause suggestions and risk flagging</li>
+            <li>Version control with complete audit trails</li>
+            <li>Integrated e-signature for seamless execution</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature 3 -->
+  <div class="feature-block">
+    <div class="container-wide">
+      <div class="feature-inner">
+        <div class="feature-visual reveal-left">
+          <div class="feature-image">
+            <div class="feat-img-bg feat-bg-3"></div>
+            <div class="feat-illustration">
+              <div class="feat-icon-lg">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              </div>
+              <div class="feat-img-label">Time &amp; Billing<br>Tracker</div>
+              <div class="feat-img-sublabel">Every Minute Counts</div>
+            </div>
+          </div>
+        </div>
+        <div class="feature-text reveal-right">
+          <div class="feature-number">03</div>
+          <div class="section-label">Billing & Time</div>
+          <h3 class="section-title">Effortless Time<br>& <span style="color:var(--gold)">Billing</span></h3>
+          <p class="section-subtitle">Capture every billable moment with intelligent time tracking that runs silently in the background, and generate invoices that get paid faster.</p>
+          <ul class="feature-points">
+            <li>Automatic time capture across all activities</li>
+            <li>One-click professional invoice generation</li>
+            <li>Trust accounting and IOLTA compliance</li>
+            <li>Payment processing with client portal access</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feature 4 -->
+  <div class="feature-block">
+    <div class="container-wide">
+      <div class="feature-inner">
+        <div class="feature-visual reveal-right">
+          <div class="feature-image">
+            <div class="feat-img-bg feat-bg-4"></div>
+            <div class="feat-illustration">
+              <div class="feat-icon-lg">
+                <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+              </div>
+              <div class="feat-img-label">Legal Research<br>& Analytics</div>
+              <div class="feat-img-sublabel">Data-Driven Insights</div>
+            </div>
+          </div>
+        </div>
+        <div class="feature-text reveal-left">
+          <div class="feature-number">04</div>
+          <div class="section-label">Research & Insights</div>
+          <h3 class="section-title">AI-Powered Legal<br><span style="color:var(--gold)">Research</span></h3>
+          <p class="section-subtitle">Leverage advanced AI to surface relevant precedents, analyze case law, and gain strategic insights that give your clients the winning edge.</p>
+          <ul class="feature-points">
+            <li>Natural language legal research across jurisdictions</li>
+            <li>Predictive case outcome analytics</li>
+            <li>Automated citation checking and Shepardizing</li>
+            <li>Visual case strategy mapping and timelines</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ════════ TESTIMONIALS ════════ -->
+<section class="testimonials" id="testimonials">
+  <div class="container-wide">
+    <div class="testimonials-header">
+      <div class="section-label reveal">Testimonials</div>
+      <div class="gold-line gold-line-center reveal stagger-1"></div>
+      <h2 class="section-title reveal stagger-2">Trusted by Leading<br><span style="color:var(--gold)">Legal Minds</span></h2>
+      <p class="section-subtitle reveal stagger-3">
+        See how Lawyer Companion is transforming practices across every area of law.
+      </p>
+    </div>
+    <div class="testimonials-grid">
+      <div class="testimonial-card reveal stagger-1">
+        <div class="testimonial-quote">&ldquo;</div>
+        <div class="testimonial-stars">
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <p class="testimonial-text">
+          Lawyer Companion cut our case preparation time in half. The document automation alone has saved our firm over 200 billable hours this quarter.
+        </p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">RS</div>
+          <div>
+            <div class="testimonial-name">Rajitha Senaratne</div>
+            <div class="testimonial-role">Senior Partner, Senaratne & Associates</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card reveal stagger-2">
+        <div class="testimonial-quote">&ldquo;</div>
+        <div class="testimonial-stars">
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <p class="testimonial-text">
+          As a solo practitioner, this app is like having an entire support team. The billing features alone paid for the subscription within the first week.
+        </p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">AP</div>
+          <div>
+            <div class="testimonial-name">Amanda Perera</div>
+            <div class="testimonial-role">Criminal Defense Attorney</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card reveal stagger-3">
+        <div class="testimonial-quote">&ldquo;</div>
+        <div class="testimonial-stars">
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        </div>
+        <p class="testimonial-text">
+          The legal research AI is phenomenal. It surfaces precedents I would have missed and gives our litigation team a genuine strategic advantage.
+        </p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">KF</div>
+          <div>
+            <div class="testimonial-name">Kamal Fernando</div>
+            <div class="testimonial-role">Head of Litigation, LexCorp LLP</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ CONTACT ════════ -->
+<section class="contact" id="contact">
+  <div class="container-wide">
+    <div class="contact-inner">
+      <div class="contact-text">
+        <div class="section-label reveal">Contact Us</div>
+        <div class="gold-line reveal stagger-1"></div>
+        <h2 class="section-title reveal stagger-2">Ready to Transform<br>Your <span style="color:var(--gold)">Practice?</span></h2>
+        <p class="section-subtitle reveal stagger-3">
+          Join thousands of legal professionals who have elevated their practice with Lawyer Companion. Our team is ready to show you the difference.
+        </p>
+        <div class="contact-info reveal stagger-4">
+          <div class="contact-info-item">
+            <div class="contact-info-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <div>
+              <div class="contact-info-label">Email</div>
+              <div class="contact-info-value">contact@lawyercompanion.app</div>
+            </div>
+          </div>
+          <div class="contact-info-item">
+            <div class="contact-info-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+            </div>
+            <div>
+              <div class="contact-info-label">Phone</div>
+              <div class="contact-info-value">+94 (11) 234-5678</div>
+            </div>
+          </div>
+          <div class="contact-info-item">
+            <div class="contact-info-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div>
+              <div class="contact-info-label">Office</div>
+              <div class="contact-info-value">Colombo 07, Sri Lanka</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="contact-cta-wrap reveal-scale stagger-3">
+        <div class="contact-cta-icon">
+          <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+        </div>
+        <h3 class="contact-cta-title">Schedule a Demo</h3>
+        <p class="contact-cta-desc">
+          See Lawyer Companion in action. Book a personalized walkthrough with our legal-tech specialists — no commitment required.
+        </p>
+        <a href="mailto:contact@lawyercompanion.app" class="btn-contact">
+          Get in Touch
+          <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ FOOTER ════════ -->
+<footer class="footer">
+  <div class="container-wide">
+    <a href="#" class="footer-logo">
+      <div class="footer-logo-icon">LC</div>
+      <span class="footer-logo-text">Lawyer Companion</span>
+    </a>
+    <p class="footer-copy">&copy; 2026 Lawyer Companion. All rights reserved.</p>
+    <div class="footer-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Support</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ── Navbar scroll ── */
+const navbar = document.getElementById('navbar');
+let lastScroll = 0;
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 60);
+}, { passive: true });
+
+/* ── Mobile menu ── */
+const hamburger = document.getElementById('hamburger');
+const navLinks = document.getElementById('navLinks');
+hamburger.addEventListener('click', () => {
+  navLinks.classList.toggle('open');
+});
+navLinks.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', () => navLinks.classList.remove('open'));
+});
+
+/* ── Scroll reveal (Intersection Observer) ── */
+const revealEls = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale');
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+revealEls.forEach(el => revealObserver.observe(el));
+
+/* ── Count-up animation ── */
+const countEls = document.querySelectorAll('.count-up');
+const countObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      const target = parseInt(el.dataset.target);
+      const duration = 2000;
+      const start = performance.now();
+      const step = (now) => {
+        const progress = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.floor(eased * target).toLocaleString();
+        if (progress < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+      countObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.5 });
+countEls.forEach(el => countObserver.observe(el));
+
+/* ── Smooth anchor scrolling ── */
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(anchor.getAttribute('href'));
+    if (target) {
+      const offset = 80;
+      const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  });
+});
+
+/* ── Subtle parallax on hero visual ── */
+const heroVisual = document.querySelector('.hero-visual');
+if (heroVisual && window.innerWidth > 1024) {
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    if (scrolled < window.innerHeight) {
+      heroVisual.style.transform = `translateY(${scrolled * 0.08}px)`;
+    }
+  }, { passive: true });
+}
+</script>
+</body>
+</html>
